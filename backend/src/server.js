@@ -1,5 +1,4 @@
-import { createServer } from 'node:http';
+import app from "./app.js";
+import { env } from "./config/env.js";
 
-const port = Number(process.env.PORT ?? 4000);
-
-createServer().listen(port);
+app.listen(env.PORT);
