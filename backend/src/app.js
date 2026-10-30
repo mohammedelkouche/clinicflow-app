@@ -6,6 +6,7 @@ import morgan from "morgan";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { notFound } from "./middlewares/notFound.js";
+import authRoutes from "./modules/auth/auth.routes.js";
 
 const app = express();
 
@@ -25,6 +26,8 @@ if (env.NODE_ENV !== "test") {
 app.get("/api/health", (_request, response) => {
   response.json({ status: "ok" });
 });
+
+app.use("/api/auth", authRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
