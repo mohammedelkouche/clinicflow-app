@@ -7,6 +7,7 @@ import { env } from "./config/env.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { notFound } from "./middlewares/notFound.js";
 import authRoutes from "./modules/auth/auth.routes.js";
+import patientsRoutes from "./modules/patients/patients.routes.js";
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.get("/api/health", (_request, response) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/patients", patientsRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
