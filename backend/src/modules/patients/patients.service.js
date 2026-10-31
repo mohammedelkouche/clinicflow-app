@@ -6,7 +6,7 @@ const patientColumns = `
   full_name AS "fullName",
   cin,
   phone,
-  birth_date AS "birthDate",
+  birth_date::text AS "birthDate",
   address,
   created_at AS "createdAt",
   updated_at AS "updatedAt"
