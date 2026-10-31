@@ -11,9 +11,12 @@ const initialValues = {
 function AppointmentForm({
   patients,
   initialPatientId,
+  arePatientsLoading,
+  patientOptionsError,
   isSubmitting,
   serverError,
   onCancel,
+  onRetryPatients,
   onSubmit,
 }) {
   const [values, setValues] = useState(() => ({
@@ -70,16 +73,30 @@ function AppointmentForm({
             name="patientId"
             value={values.patientId}
             onChange={handleChange}
+            disabled={
+              arePatientsLoading ||
+              Boolean(patientOptionsError) ||
+              !patients.length
+            }
             required
           >
-            <option value="">Select a patient</option>
+            <option value="">
+              {arePatientsLoading
+                ? "Loading patients…"
+                : patients.length
+                  ? "Select a patient"
+                  : "No patients available"}
+            </option>
             {filteredPatients.map((patient) => (
               <option key={patient.id} value={patient.id}>
                 {patient.fullName} · {patient.cin}
               </option>
             ))}
           </select>
-          {filteredPatients.length === 0 ? (
+          {!arePatientsLoading &&
+          !patientOptionsError &&
+          patients.length > 0 &&
+          filteredPatients.length === 0 ? (
             <small>No patients match this search.</small>
           ) : null}
         </label>
@@ -131,6 +148,19 @@ function AppointmentForm({
         </label>
       </div>
 
+      {patientOptionsError ? (
+        <div className="form-error" role="alert">
+          <span>{patientOptionsError}</span>{" "}
+          <button
+            className="text-button"
+            type="button"
+            onClick={onRetryPatients}
+          >
+            Try again
+          </button>
+        </div>
+      ) : null}
+
       {serverError ? (
         <div className="form-error" role="alert">
           {serverError}
@@ -149,7 +179,12 @@ function AppointmentForm({
         <button
           className="button button--primary"
           type="submit"
-          disabled={isSubmitting}
+          disabled={
+            isSubmitting ||
+            arePatientsLoading ||
+            Boolean(patientOptionsError) ||
+            !patients.length
+          }
         >
           {isSubmitting ? "Scheduling…" : "Schedule appointment"}
         </button>

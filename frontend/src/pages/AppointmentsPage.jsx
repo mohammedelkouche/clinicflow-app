@@ -29,6 +29,9 @@ function AppointmentsPage() {
   const initialPatientId = searchParams.get("patientId") ?? "";
   const [appointments, setAppointments] = useState([]);
   const [patients, setPatients] = useState([]);
+  const [arePatientsLoading, setArePatientsLoading] = useState(true);
+  const [patientOptionsError, setPatientOptionsError] = useState("");
+  const [patientOptionsRequestKey, setPatientOptionsRequestKey] = useState(0);
   const [meta, setMeta] = useState(initialMeta);
   const [dateFilter, setDateFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -50,12 +53,17 @@ function AppointmentsPage() {
         const result = await listPatients({ search: "", page: 1, limit: 100 });
         if (isActive) {
           setPatients(result.data);
+          setPatientOptionsError("");
         }
       } catch (requestError) {
         if (isActive) {
-          setFormError(
+          setPatientOptionsError(
             getRequestError(requestError, "Unable to load patient options."),
           );
+        }
+      } finally {
+        if (isActive) {
+          setArePatientsLoading(false);
         }
       }
     }
@@ -65,7 +73,7 @@ function AppointmentsPage() {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [patientOptionsRequestKey]);
 
   useEffect(() => {
     let isActive = true;
@@ -131,6 +139,12 @@ function AppointmentsPage() {
   function openForm() {
     setFormError("");
     setIsFormOpen(true);
+  }
+
+  function retryPatientOptions() {
+    setPatientOptionsError("");
+    setArePatientsLoading(true);
+    setPatientOptionsRequestKey((currentKey) => currentKey + 1);
   }
 
   function closeForm() {
@@ -384,9 +398,12 @@ function AppointmentsPage() {
             <AppointmentForm
               patients={patients}
               initialPatientId={initialPatientId}
+              arePatientsLoading={arePatientsLoading}
+              patientOptionsError={patientOptionsError}
               isSubmitting={isSubmitting}
               serverError={formError}
               onCancel={closeForm}
+              onRetryPatients={retryPatientOptions}
               onSubmit={handleCreate}
             />
           </section>
