@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import toast from "react-hot-toast";
 
 import {
   createAppointment,
@@ -38,10 +39,8 @@ function AppointmentsPage() {
   const [page, setPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [actionError, setActionError] = useState("");
+  const [hasLoadError, setHasLoadError] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(Boolean(initialPatientId));
-  const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
 
@@ -59,6 +58,10 @@ function AppointmentsPage() {
         if (isActive) {
           setPatientOptionsError(
             getRequestError(requestError, "Unable to load patient options."),
+          );
+          toast.error(
+            getRequestError(requestError, "Unable to load patient options."),
+            { id: "patient-options-error" },
           );
         }
       } finally {
@@ -90,11 +93,14 @@ function AppointmentsPage() {
         if (isActive) {
           setAppointments(result.data);
           setMeta(result.meta);
+          setHasLoadError(false);
         }
       } catch (requestError) {
         if (isActive) {
-          setError(
+          setHasLoadError(true);
+          toast.error(
             getRequestError(requestError, "Unable to load appointments."),
+            { id: "appointments-load-error" },
           );
         }
       } finally {
@@ -112,7 +118,7 @@ function AppointmentsPage() {
   }, [dateFilter, page, refreshKey, statusFilter]);
 
   function refreshAppointments() {
-    setError("");
+    setHasLoadError(false);
     setIsLoading(true);
     setRefreshKey((currentKey) => currentKey + 1);
   }
@@ -121,8 +127,7 @@ function AppointmentsPage() {
     return (event) => {
       setFilter(event.target.value);
       setPage(1);
-      setError("");
-      setActionError("");
+      setHasLoadError(false);
       setIsLoading(true);
     };
   }
@@ -131,13 +136,11 @@ function AppointmentsPage() {
     setDateFilter("");
     setStatusFilter("");
     setPage(1);
-    setError("");
-    setActionError("");
+    setHasLoadError(false);
     setIsLoading(true);
   }
 
   function openForm() {
-    setFormError("");
     setIsFormOpen(true);
   }
 
@@ -149,7 +152,6 @@ function AppointmentsPage() {
 
   function closeForm() {
     setIsFormOpen(false);
-    setFormError("");
     if (initialPatientId) {
       setSearchParams({}, { replace: true });
     }
@@ -157,10 +159,10 @@ function AppointmentsPage() {
 
   async function handleCreate(values) {
     setIsSubmitting(true);
-    setFormError("");
 
     try {
       await createAppointment(values);
+      toast.success("Appointment scheduled.");
       closeForm();
 
       if (page !== 1) {
@@ -170,8 +172,9 @@ function AppointmentsPage() {
         refreshAppointments();
       }
     } catch (requestError) {
-      setFormError(
+      toast.error(
         getRequestError(requestError, "Unable to schedule this appointment."),
+        { duration: 6500 },
       );
     } finally {
       setIsSubmitting(false);
@@ -180,17 +183,18 @@ function AppointmentsPage() {
 
   async function handleStatusChange(appointmentId, status) {
     setUpdatingId(appointmentId);
-    setActionError("");
 
     try {
       await updateAppointmentStatus(appointmentId, status);
+      toast.success("Appointment status updated.");
       refreshAppointments();
     } catch (requestError) {
-      setActionError(
+      toast.error(
         getRequestError(
           requestError,
           "Unable to update the appointment status.",
         ),
+        { duration: 6500 },
       );
     } finally {
       setUpdatingId(null);
@@ -199,8 +203,7 @@ function AppointmentsPage() {
 
   function handlePageChange(nextPage) {
     setPage(nextPage);
-    setError("");
-    setActionError("");
+    setHasLoadError(false);
     setIsLoading(true);
   }
 
@@ -255,113 +258,90 @@ function AppointmentsPage() {
         <p>{meta.total} appointments</p>
       </div>
 
-      {actionError ? (
-        <div className="inline-alert" role="alert">
-          <strong>Status was not changed</strong>
-          <span>{actionError}</span>
-          <button
-            type="button"
-            aria-label="Dismiss status error"
-            onClick={() => setActionError("")}
-          >
-            ×
-          </button>
-        </div>
-      ) : null}
-
-      {error ? (
-        <div className="page-error" role="alert">
-          <div>
-            <h2>Appointments unavailable</h2>
-            <p>{error}</p>
+      <div className="data-card" aria-busy={isLoading}>
+        {isLoading ? (
+          <div className="table-state" role="status">
+            <span className="spinner" aria-hidden="true" />
+            <p>Loading appointments…</p>
           </div>
-          <button
-            className="button button--quiet"
-            type="button"
-            onClick={refreshAppointments}
-          >
-            Try again
-          </button>
-        </div>
-      ) : null}
-
-      {!error ? (
-        <div className="data-card" aria-busy={isLoading}>
-          {isLoading ? (
-            <div className="table-state" role="status">
-              <span className="spinner" aria-hidden="true" />
-              <p>Loading appointments…</p>
-            </div>
-          ) : appointments.length === 0 ? (
-            <div className="table-state">
-              <span className="empty-state__mark" aria-hidden="true">
-                AP
-              </span>
-              <h2>No appointments found</h2>
-              <p>Change the filters or schedule a new appointment.</p>
-            </div>
-          ) : (
-            <div className="table-scroll">
-              <table className="data-table appointment-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Patient</th>
-                    <th scope="col">Date and time</th>
-                    <th scope="col">Visit</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Update status</th>
+        ) : hasLoadError ? (
+          <div className="table-state">
+            <h2>Appointments unavailable</h2>
+            <p>Use the notification for details, then try again.</p>
+            <button
+              className="button button--quiet"
+              type="button"
+              onClick={refreshAppointments}
+            >
+              Try again
+            </button>
+          </div>
+        ) : appointments.length === 0 ? (
+          <div className="table-state">
+            <span className="empty-state__mark" aria-hidden="true">
+              AP
+            </span>
+            <h2>No appointments found</h2>
+            <p>Change the filters or schedule a new appointment.</p>
+          </div>
+        ) : (
+          <div className="table-scroll">
+            <table className="data-table appointment-table">
+              <thead>
+                <tr>
+                  <th scope="col">Patient</th>
+                  <th scope="col">Date and time</th>
+                  <th scope="col">Visit</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Update status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {appointments.map((appointment) => (
+                  <tr key={appointment.id}>
+                    <td data-label="Patient">
+                      <strong className="appointment-patient">
+                        {appointment.patientName}
+                      </strong>
+                    </td>
+                    <td data-label="Date and time">
+                      {formatAppointmentDate(appointment.appointmentDate)}
+                    </td>
+                    <td data-label="Visit">
+                      <div className="visit-copy">
+                        <strong>{appointment.reason}</strong>
+                        {appointment.notes ? (
+                          <small>{appointment.notes}</small>
+                        ) : null}
+                      </div>
+                    </td>
+                    <td data-label="Status">
+                      <StatusBadge status={appointment.status} />
+                    </td>
+                    <td data-label="Update status">
+                      <select
+                        className="status-select"
+                        value={appointment.status}
+                        onChange={(event) =>
+                          handleStatusChange(appointment.id, event.target.value)
+                        }
+                        disabled={updatingId === appointment.id}
+                        aria-label={`Update status for ${appointment.patientName} on ${formatAppointmentDate(appointment.appointmentDate)}`}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {appointments.map((appointment) => (
-                    <tr key={appointment.id}>
-                      <td data-label="Patient">
-                        <strong className="appointment-patient">
-                          {appointment.patientName}
-                        </strong>
-                      </td>
-                      <td data-label="Date and time">
-                        {formatAppointmentDate(appointment.appointmentDate)}
-                      </td>
-                      <td data-label="Visit">
-                        <div className="visit-copy">
-                          <strong>{appointment.reason}</strong>
-                          {appointment.notes ? (
-                            <small>{appointment.notes}</small>
-                          ) : null}
-                        </div>
-                      </td>
-                      <td data-label="Status">
-                        <StatusBadge status={appointment.status} />
-                      </td>
-                      <td data-label="Update status">
-                        <select
-                          className="status-select"
-                          value={appointment.status}
-                          onChange={(event) =>
-                            handleStatusChange(
-                              appointment.id,
-                              event.target.value,
-                            )
-                          }
-                          disabled={updatingId === appointment.id}
-                          aria-label={`Update status for ${appointment.patientName} on ${formatAppointmentDate(appointment.appointmentDate)}`}
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="confirmed">Confirmed</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      ) : null}
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
-      {!isLoading && !error ? (
+      {!isLoading && !hasLoadError ? (
         <Pagination
           page={meta.page}
           totalPages={meta.totalPages}
@@ -401,7 +381,6 @@ function AppointmentsPage() {
               arePatientsLoading={arePatientsLoading}
               patientOptionsError={patientOptionsError}
               isSubmitting={isSubmitting}
-              serverError={formError}
               onCancel={closeForm}
               onRetryPatients={retryPatientOptions}
               onSubmit={handleCreate}

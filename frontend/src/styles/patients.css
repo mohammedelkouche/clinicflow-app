@@ -153,6 +153,7 @@
 }
 
 .text-button {
+  display: inline-block;
   padding: 0.35rem 0.45rem;
   border: 0;
   color: var(--brand-dark);
@@ -160,6 +161,7 @@
   cursor: pointer;
   font: inherit;
   font-weight: 700;
+  text-decoration: none;
 }
 
 .text-button:hover {
@@ -225,28 +227,6 @@
 .pagination__actions {
   display: flex;
   gap: 0.55rem;
-}
-
-.page-error {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  margin-bottom: 1rem;
-  padding: 1.25rem;
-  border: 1px solid #f1c6c6;
-  border-radius: 0.9rem;
-  background: #fff7f7;
-}
-
-.page-error h2 {
-  margin-bottom: 0.3rem;
-  font-size: 1rem;
-}
-
-.page-error p {
-  margin-bottom: 0;
-  color: var(--danger);
 }
 
 .modal-backdrop {
@@ -340,10 +320,6 @@
 .modal-close:focus-visible {
   outline: 3px solid rgb(8 122 107 / 25%);
   outline-offset: 3px;
-}
-
-.patient-form .form-error {
-  margin-top: 1rem;
 }
 
 .form-actions {
@@ -587,7 +563,6 @@
 @media (max-width: 560px) {
   .patient-page-header,
   .detail-header,
-  .page-error,
   .pagination {
     align-items: stretch;
     flex-direction: column;
@@ -595,10 +570,6 @@
 
   .patient-page-header .button,
   .detail-header .button,
-  .page-error .button {
-    width: 100%;
-  }
-
   .patient-toolbar {
     align-items: stretch;
     flex-direction: column;

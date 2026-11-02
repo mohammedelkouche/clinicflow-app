@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 import { useAuth } from "../hooks/useAuth.js";
 
@@ -9,20 +10,19 @@ function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (isAuthenticated) return <Navigate to="/" replace />;
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setError("");
     setIsSubmitting(true);
     try {
       await login({ email, password });
+      toast.success("Welcome back to ClinicFlow.");
       navigate(location.state?.from ?? "/", { replace: true });
     } catch (requestError) {
-      setError(
+      toast.error(
         requestError.response?.data?.error?.message ??
           "Unable to sign in. Please try again.",
       );
@@ -78,11 +78,6 @@ function LoginPage() {
               autoComplete="current-password"
               required
             />
-            {error ? (
-              <div className="form-error" role="alert">
-                {error}
-              </div>
-            ) : null}
             <button
               className="button button--primary button--wide"
               type="submit"

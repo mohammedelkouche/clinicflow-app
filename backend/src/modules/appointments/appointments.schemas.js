@@ -2,6 +2,14 @@ import { z } from "zod";
 
 const statusSchema = z.enum(["pending", "confirmed", "cancelled"]);
 
+const futureAppointmentDateSchema = z
+  .string()
+  .datetime({ offset: true })
+  .refine(
+    (value) => new Date(value).getTime() > Date.now(),
+    "Appointment date must be in the future",
+  );
+
 const dateSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must use YYYY-MM-DD")
@@ -19,7 +27,7 @@ function optionalQueryValue(schema) {
 export const appointmentSchema = z
   .object({
     patientId: z.string().uuid(),
-    appointmentDate: z.string().datetime({ offset: true }),
+    appointmentDate: futureAppointmentDateSchema,
     status: statusSchema.default("pending"),
     reason: z.string().trim().min(1).max(500),
     notes: z

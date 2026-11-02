@@ -3,6 +3,14 @@ import { AppError } from "../utils/AppError.js";
 function mapPostgresError(error) {
   switch (error.code) {
     case "23505":
+      if (error.constraint === "users_email_lower_key") {
+        return new AppError(
+          409,
+          "EMAIL_ALREADY_EXISTS",
+          "A user with this email already exists",
+        );
+      }
+
       return new AppError(
         409,
         error.constraint === "patients_cin_key"
@@ -16,7 +24,7 @@ function mapPostgresError(error) {
       return new AppError(
         409,
         "APPOINTMENT_CONFLICT",
-        "This appointment conflicts with another confirmed appointment",
+        "The clinic already has a confirmed appointment within 30 minutes of this time",
       );
     case "22P02":
       return new AppError(400, "VALIDATION_ERROR", "Invalid input");

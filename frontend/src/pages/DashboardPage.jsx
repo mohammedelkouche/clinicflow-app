@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 import { getDashboardStats } from "../api/dashboard.api.js";
 import StatCard from "../components/StatCard.jsx";
@@ -38,7 +39,7 @@ const statCards = [
 function DashboardPage() {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
-  const [error, setError] = useState("");
+  const [hasError, setHasError] = useState(false);
   const [requestKey, setRequestKey] = useState(0);
 
   useEffect(() => {
@@ -49,12 +50,15 @@ function DashboardPage() {
         const dashboardStats = await getDashboardStats();
         if (isActive) {
           setStats(dashboardStats);
+          setHasError(false);
         }
       } catch (requestError) {
         if (isActive) {
-          setError(
+          setHasError(true);
+          toast.error(
             requestError.response?.data?.error?.message ??
               "Unable to load dashboard statistics.",
+            { id: "dashboard-load-error" },
           );
         }
       }
@@ -69,7 +73,7 @@ function DashboardPage() {
 
   function retryLoading() {
     setStats(null);
-    setError("");
+    setHasError(false);
     setRequestKey((currentKey) => currentKey + 1);
   }
 
@@ -84,19 +88,19 @@ function DashboardPage() {
         <span className="role-pill">{user.role}</span>
       </header>
 
-      {error ? (
-        <div className="dashboard-error" role="alert">
-          <div>
+      {hasError ? (
+        <div className="data-card">
+          <div className="table-state">
             <h2>Dashboard unavailable</h2>
-            <p>{error}</p>
+            <p>Use the notification for details, then try again.</p>
+            <button
+              className="button button--quiet"
+              type="button"
+              onClick={retryLoading}
+            >
+              Try again
+            </button>
           </div>
-          <button
-            className="button button--quiet"
-            type="button"
-            onClick={retryLoading}
-          >
-            Try again
-          </button>
         </div>
       ) : (
         <div className="stats-grid" aria-busy={!stats} aria-live="polite">

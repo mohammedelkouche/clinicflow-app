@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
 const initialValues = {
   patientId: "",
@@ -8,13 +9,24 @@ const initialValues = {
   status: "pending",
 };
 
+function getMinimumAppointmentDateTime() {
+  const minimumDate = new Date();
+  minimumDate.setSeconds(0, 0);
+  minimumDate.setMinutes(minimumDate.getMinutes() + 1);
+
+  const localTime = new Date(
+    minimumDate.getTime() - minimumDate.getTimezoneOffset() * 60_000,
+  );
+
+  return localTime.toISOString().slice(0, 16);
+}
+
 function AppointmentForm({
   patients,
   initialPatientId,
   arePatientsLoading,
   patientOptionsError,
   isSubmitting,
-  serverError,
   onCancel,
   onRetryPatients,
   onSubmit,
@@ -24,6 +36,17 @@ function AppointmentForm({
     patientId: initialPatientId ?? "",
   }));
   const [patientSearch, setPatientSearch] = useState("");
+  const [minimumAppointmentDateTime, setMinimumAppointmentDateTime] = useState(
+    getMinimumAppointmentDateTime,
+  );
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setMinimumAppointmentDateTime(getMinimumAppointmentDateTime());
+    }, 30_000);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   const filteredPatients = useMemo(() => {
     const normalizedSearch = patientSearch.trim().toLowerCase();
@@ -46,9 +69,21 @@ function AppointmentForm({
 
   function handleSubmit(event) {
     event.preventDefault();
+
+    const appointmentDate = new Date(values.appointmentDate);
+
+    if (
+      Number.isNaN(appointmentDate.getTime()) ||
+      appointmentDate.getTime() <= Date.now()
+    ) {
+      setMinimumAppointmentDateTime(getMinimumAppointmentDateTime());
+      toast.error("Choose a future appointment date and time.");
+      return;
+    }
+
     onSubmit({
       ...values,
-      appointmentDate: new Date(values.appointmentDate).toISOString(),
+      appointmentDate: appointmentDate.toISOString(),
       notes: values.notes || null,
     });
   }
@@ -108,8 +143,11 @@ function AppointmentForm({
             type="datetime-local"
             value={values.appointmentDate}
             onInput={handleChange}
+            min={minimumAppointmentDateTime}
+            step="60"
             required
           />
+          <small>Past dates and elapsed times today are unavailable.</small>
         </label>
 
         <label className="form-field">
@@ -149,21 +187,14 @@ function AppointmentForm({
       </div>
 
       {patientOptionsError ? (
-        <div className="form-error" role="alert">
-          <span>{patientOptionsError}</span>{" "}
+        <div className="form-retry">
           <button
-            className="text-button"
+            className="button button--quiet"
             type="button"
             onClick={onRetryPatients}
           >
-            Try again
+            Reload patient list
           </button>
-        </div>
-      ) : null}
-
-      {serverError ? (
-        <div className="form-error" role="alert">
-          {serverError}
         </div>
       ) : null}
 

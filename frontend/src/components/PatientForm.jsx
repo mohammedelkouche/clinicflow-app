@@ -17,13 +17,7 @@ function getInitialValues(patient) {
   };
 }
 
-function PatientForm({
-  patient,
-  isSubmitting,
-  serverError,
-  onCancel,
-  onSubmit,
-}) {
+function PatientForm({ patient, isSubmitting, onCancel, onSubmit }) {
   const [values, setValues] = useState(() => getInitialValues(patient));
 
   function handleChange(event) {
@@ -101,12 +95,6 @@ function PatientForm({
           />
         </label>
       </div>
-
-      {serverError ? (
-        <div className="form-error" role="alert">
-          {serverError}
-        </div>
-      ) : null}
 
       <div className="form-actions">
         <button

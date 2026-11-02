@@ -6,6 +6,7 @@ dist/
 coverage/
 docs/
 AGENTS.md
+CLINICFLOW_TECHNICAL_AUDIT.md
 *.log
 .DS_Store
 Thumbs.db

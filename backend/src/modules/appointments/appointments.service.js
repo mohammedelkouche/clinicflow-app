@@ -25,7 +25,15 @@ function appointmentConflictError() {
   return new AppError(
     409,
     "APPOINTMENT_CONFLICT",
-    "This patient already has a confirmed appointment within 30 minutes",
+    "The clinic already has a confirmed appointment within 30 minutes of this time",
+  );
+}
+
+function appointmentInPastError() {
+  return new AppError(
+    400,
+    "APPOINTMENT_IN_PAST",
+    "Appointment date must be in the future",
   );
 }
 
@@ -43,15 +51,25 @@ async function findAppointment(client, appointmentId) {
   return result.rows[0];
 }
 
-async function lockPatient(client, patientId) {
-  await client.query("SELECT pg_advisory_xact_lock(hashtext($1::text))", [
-    patientId,
+async function lockClinicSchedule(client) {
+  await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
+    "clinicflow:confirmed-schedule",
   ]);
+}
+
+async function ensureAppointmentIsInFuture(client, appointmentDate) {
+  const result = await client.query(
+    "SELECT $1::timestamptz > NOW() AS is_future",
+    [appointmentDate],
+  );
+
+  if (!result.rows[0].is_future) {
+    throw appointmentInPastError();
+  }
 }
 
 async function ensureNoConfirmedConflict(
   client,
-  patientId,
   appointmentId,
   appointmentDate,
 ) {
@@ -59,14 +77,13 @@ async function ensureNoConfirmedConflict(
     `
       SELECT 1
       FROM appointments
-      WHERE patient_id = $1
-        AND status = 'confirmed'
-        AND id <> $2
-        AND appointment_date > $3::timestamptz - INTERVAL '30 minutes'
-        AND appointment_date < $3::timestamptz + INTERVAL '30 minutes'
+      WHERE status = 'confirmed'
+        AND id <> $1
+        AND appointment_date > $2::timestamptz - INTERVAL '30 minutes'
+        AND appointment_date < $2::timestamptz + INTERVAL '30 minutes'
       LIMIT 1
     `,
-    [patientId, appointmentId, appointmentDate],
+    [appointmentId, appointmentDate],
   );
 
   if (result.rowCount > 0) {
@@ -79,6 +96,8 @@ export async function createAppointment(
   createdBy,
 ) {
   return withTransaction(async (client) => {
+    await ensureAppointmentIsInFuture(client, appointmentDate);
+
     const patientResult = await client.query(
       "SELECT id FROM patients WHERE id = $1 FOR KEY SHARE",
       [patientId],
@@ -88,15 +107,9 @@ export async function createAppointment(
       throw new AppError(404, "NOT_FOUND", "Patient not found");
     }
 
-    await lockPatient(client, patientId);
-
     if (status === "confirmed") {
-      await ensureNoConfirmedConflict(
-        client,
-        patientId,
-        nilUuid,
-        appointmentDate,
-      );
+      await lockClinicSchedule(client);
+      await ensureNoConfirmedConflict(client, nilUuid, appointmentDate);
     }
 
     const insertResult = await client.query(
@@ -211,12 +224,11 @@ export async function updateAppointmentStatus(appointmentId, status) {
       throw appointmentNotFoundError();
     }
 
-    await lockPatient(client, appointment.patient_id);
-
     if (status === "confirmed") {
+      await ensureAppointmentIsInFuture(client, appointment.appointment_date);
+      await lockClinicSchedule(client);
       await ensureNoConfirmedConflict(
         client,
-        appointment.patient_id,
         appointment.id,
         appointment.appointment_date,
       );

@@ -1,0 +1,18 @@
+.user-page-header {
+  align-items: center;
+}
+
+.user-form .form-field select {
+  width: 100%;
+}
+
+@media (max-width: 560px) {
+  .user-page-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .user-page-header .button {
+    width: 100%;
+  }
+}

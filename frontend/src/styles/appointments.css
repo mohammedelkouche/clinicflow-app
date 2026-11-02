@@ -50,8 +50,7 @@
 .filter-field input:focus-visible,
 .filter-field select:focus-visible,
 .form-field select:focus-visible,
-.status-select:focus-visible,
-.inline-alert button:focus-visible {
+.status-select:focus-visible {
   outline: 3px solid rgb(8 122 107 / 25%);
   outline-offset: 3px;
 }
@@ -98,44 +97,13 @@
   opacity: 0.65;
 }
 
-.inline-alert {
-  display: grid;
-  margin-bottom: 1rem;
-  padding: 0.9rem 3rem 0.9rem 1rem;
-  border: 1px solid #efc790;
-  border-radius: 0.8rem;
-  color: #7b4d0a;
-  background: #fff8eb;
-  grid-template-columns: auto 1fr;
-  gap: 0.25rem 0.7rem;
-  position: relative;
-}
-
-.inline-alert strong {
-  font-size: 0.84rem;
-}
-
-.inline-alert span {
-  font-size: 0.84rem;
-}
-
-.inline-alert button {
-  position: absolute;
-  top: 50%;
-  right: 0.75rem;
-  border: 0;
-  color: inherit;
-  background: transparent;
-  cursor: pointer;
-  font-size: 1.2rem;
-  transform: translateY(-50%);
-}
-
 .appointment-modal {
   width: min(100%, 42rem);
 }
 
-.appointment-form .form-error {
+.form-retry {
+  display: flex;
+  justify-content: flex-start;
   margin-top: 1rem;
 }
 
@@ -185,9 +153,5 @@
 
   .appointment-filters > p {
     grid-column: auto;
-  }
-
-  .inline-alert {
-    grid-template-columns: 1fr;
   }
 }

@@ -27,6 +27,16 @@ function Navbar({ user, onLogout }) {
               {link.label}
             </NavLink>
           ))}
+          {user.role === "admin" ? (
+            <NavLink
+              to="/users"
+              className={({ isActive }) =>
+                `nav-link${isActive ? " nav-link--active" : ""}`
+              }
+            >
+              Users
+            </NavLink>
+          ) : null}
         </nav>
         <div className="user-menu">
           <span className="user-avatar">

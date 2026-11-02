@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import toast from "react-hot-toast";
 
 import { listAppointments } from "../api/appointments.api.js";
 import { getPatient } from "../api/patients.api.js";
@@ -23,7 +24,7 @@ function PatientDetailsPage() {
   const [patient, setPatient] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [hasError, setHasError] = useState(false);
   const [requestKey, setRequestKey] = useState(0);
 
   useEffect(() => {
@@ -39,12 +40,15 @@ function PatientDetailsPage() {
         if (isActive) {
           setPatient(patientRecord);
           setAppointments(appointmentResult.data);
+          setHasError(false);
         }
       } catch (requestError) {
         if (isActive) {
-          setError(
+          setHasError(true);
+          toast.error(
             requestError.response?.data?.error?.message ??
               "Unable to load this patient record.",
+            { id: "patient-details-load-error" },
           );
         }
       } finally {
@@ -62,7 +66,7 @@ function PatientDetailsPage() {
   }, [id, requestKey]);
 
   function retryLoading() {
-    setError("");
+    setHasError(false);
     setIsLoading(true);
     setRequestKey((currentKey) => currentKey + 1);
   }
@@ -76,24 +80,24 @@ function PatientDetailsPage() {
     );
   }
 
-  if (error) {
+  if (hasError) {
     return (
       <section className="page-shell">
         <Link className="back-link" to="/patients">
           ← Back to patients
         </Link>
-        <div className="page-error" role="alert">
-          <div>
+        <div className="data-card">
+          <div className="table-state">
             <h2>Patient record unavailable</h2>
-            <p>{error}</p>
+            <p>Use the notification for details, then try again.</p>
+            <button
+              className="button button--quiet"
+              type="button"
+              onClick={retryLoading}
+            >
+              Try again
+            </button>
           </div>
-          <button
-            className="button button--quiet"
-            type="button"
-            onClick={retryLoading}
-          >
-            Try again
-          </button>
         </div>
       </section>
     );

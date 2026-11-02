@@ -133,6 +133,8 @@ the header `Authorization: Bearer <token>`.
 | `GET`    | `/appointments`            | Admin, staff | Filter and paginate schedule |
 | `PATCH`  | `/appointments/:id/status` | Admin, staff | Change appointment status    |
 | `GET`    | `/dashboard/stats`         | Admin, staff | Get dashboard totals         |
+| `GET`    | `/users`                   | Admin only   | Search and paginate users    |
+| `POST`   | `/users`                   | Admin only   | Create staff/admin account   |
 
 Patient list query parameters are `search`, `page`, and `limit`. Appointment
 list query parameters are `date`, `status`, `patientId`, `page`, and `limit`.
@@ -162,14 +164,20 @@ also sends `Content-Type: application/json`.
 
 ## Confirmed-appointment rule
 
-A patient cannot have two **confirmed** appointments whose start times are less
-than 30 minutes apart. For example, 10:00 and 10:20 conflict, while 10:00 and
-10:30 are allowed. Pending and cancelled appointments do not block a time.
+The clinic cannot have two **confirmed** appointments whose start times are less
+than 30 minutes apart, even when they belong to different patients. For example,
+10:00 and 10:20 conflict, while 10:00 and 10:30 are allowed. Pending and
+cancelled appointments do not block a time.
 
-The service checks the rule inside a database transaction with a patient-level
-advisory lock. PostgreSQL also enforces it with an exclusion constraint, so two
-parallel requests cannot bypass the rule. A conflict returns HTTP `409` with the
-code `APPOINTMENT_CONFLICT`.
+The service checks the rule inside a database transaction with a clinic-wide
+advisory lock. PostgreSQL also enforces it with a global trigger using the same
+transaction lock, so two parallel requests cannot bypass the rule. A conflict
+returns HTTP `409` with the code `APPOINTMENT_CONFLICT`.
+
+Appointments must also be scheduled in the future. The browser disables past
+dates and elapsed times on the current day, while the API independently checks
+the submitted timestamp against PostgreSQL `NOW()`. Past requests return HTTP
+`400`.
 
 ## Design decisions
 
@@ -181,6 +189,12 @@ code `APPOINTMENT_CONFLICT`.
 - The API uses one central JSON error handler and never returns password hashes.
 - The frontend uses React context only for authentication and local state for
   page data; Redux would add unnecessary complexity.
+- Plain CSS is used deliberately because the interface already has a small,
+  consistent design system and responsive shared classes. Adding Tailwind after
+  completion would create two styling systems without improving functionality.
+- User management is admin-only and currently supports listing and creating
+  accounts. Existing users are retained because appointments reference their
+  creator for traceability.
 - Patient deletion is admin-only and cascades to that patient's appointments.
 - Calendar dates are mapped carefully so they do not move by one day because of
   browser or database timezone conversion.
