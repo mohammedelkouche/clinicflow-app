@@ -5,6 +5,26 @@ import { createUser, listUsers } from "../api/users.api.js";
 import Pagination from "../components/Pagination.jsx";
 import UserForm from "../components/UserForm.jsx";
 import { useDebounce } from "../hooks/useDebounce.js";
+import {
+  card,
+  emptyMark,
+  eyebrow,
+  modalBackdrop,
+  modalCard,
+  modalClose,
+  modalHeader,
+  pageDescription,
+  pageHeader,
+  pageTitle,
+  primaryButton,
+  quietButton,
+  rolePill,
+  searchControl,
+  spinner,
+  table,
+  tableState,
+  tableWrap,
+} from "../styles/ui.js";
 
 const initialMeta = { page: 1, limit: 10, total: 0, totalPages: 0 };
 
@@ -86,15 +106,15 @@ function UsersPage() {
   }
 
   return (
-    <section className="page-shell">
-      <header className="page-header user-page-header">
+    <section>
+      <header className={`${pageHeader} sm:items-center`}>
         <div>
-          <p className="eyebrow">Access control</p>
-          <h1>Users</h1>
-          <p>Create and review staff or administrator accounts.</p>
+          <p className={eyebrow}>Access control</p>
+          <h1 className={pageTitle}>Users</h1>
+          <p className={pageDescription}>Create and review staff or administrator accounts.</p>
         </div>
         <button
-          className="button button--primary"
+          className={`${primaryButton} w-full sm:w-auto`}
           type="button"
           onClick={() => setIsFormOpen(true)}
         >
@@ -102,9 +122,9 @@ function UsersPage() {
         </button>
       </header>
 
-      <div className="patient-toolbar">
-        <label className="search-field" htmlFor="user-search">
-          <span className="search-field__icon" aria-hidden="true">
+      <div className="mb-4 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
+        <label className="relative w-full max-w-md" htmlFor="user-search">
+          <span className="absolute top-1/2 left-4 -translate-y-1/2 text-xl text-muted" aria-hidden="true">
             ⌕
           </span>
           <input
@@ -117,23 +137,24 @@ function UsersPage() {
               setIsLoading(true);
             }}
             placeholder="Search by name or email"
+            className={searchControl}
           />
         </label>
-        <p>{meta.total} user accounts</p>
+        <p className="text-sm whitespace-nowrap text-muted">{meta.total} user accounts</p>
       </div>
 
-      <div className="data-card" aria-busy={isLoading}>
+      <div className={card} aria-busy={isLoading}>
         {isLoading ? (
-          <div className="table-state" role="status">
-            <span className="spinner" aria-hidden="true" />
+          <div className={tableState} role="status">
+            <span className={spinner} aria-hidden="true" />
             <p>Loading users…</p>
           </div>
         ) : hasLoadError ? (
-          <div className="table-state">
-            <h2>Users unavailable</h2>
-            <p>Use the notification for details, then try again.</p>
+          <div className={tableState}>
+            <h2 className="text-lg font-bold text-ink">Users unavailable</h2>
+            <p className="mt-2">Use the notification for details, then try again.</p>
             <button
-              className="button button--quiet"
+              className={`${quietButton} mt-4`}
               type="button"
               onClick={refreshUsers}
             >
@@ -141,16 +162,16 @@ function UsersPage() {
             </button>
           </div>
         ) : users.length === 0 ? (
-          <div className="table-state">
-            <span className="empty-state__mark" aria-hidden="true">
+          <div className={tableState}>
+            <span className={emptyMark} aria-hidden="true">
               US
             </span>
-            <h2>No users found</h2>
-            <p>Change the search or create a user account.</p>
+            <h2 className="mt-4 text-lg font-bold text-ink">No users found</h2>
+            <p className="mt-2">Change the search or create a user account.</p>
           </div>
         ) : (
-          <div className="table-scroll">
-            <table className="data-table">
+          <div className={tableWrap}>
+            <table className={table}>
               <thead>
                 <tr>
                   <th scope="col">Name</th>
@@ -167,7 +188,7 @@ function UsersPage() {
                     </td>
                     <td data-label="Email">{user.email}</td>
                     <td data-label="Role">
-                      <span className="role-pill">{user.role}</span>
+                      <span className={rolePill}>{user.role}</span>
                     </td>
                     <td data-label="Created">
                       {formatCreatedAt(user.createdAt)}
@@ -195,20 +216,20 @@ function UsersPage() {
       ) : null}
 
       {isFormOpen ? (
-        <div className="modal-backdrop" role="presentation">
+        <div className={modalBackdrop} role="presentation">
           <section
-            className="modal-card"
+            className={modalCard}
             role="dialog"
             aria-modal="true"
             aria-labelledby="user-form-title"
           >
-            <header className="modal-header">
+            <header className={modalHeader}>
               <div>
-                <p className="eyebrow">New account</p>
-                <h2 id="user-form-title">Create a user</h2>
+                <p className={eyebrow}>New account</p>
+                <h2 className="text-2xl font-extrabold text-ink" id="user-form-title">Create a user</h2>
               </div>
               <button
-                className="modal-close"
+                className={modalClose}
                 type="button"
                 aria-label="Close user form"
                 onClick={() => setIsFormOpen(false)}

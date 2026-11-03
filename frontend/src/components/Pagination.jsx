@@ -1,3 +1,5 @@
+import { quietButton } from "../styles/ui.js";
+
 function Pagination({
   page,
   totalPages,
@@ -11,17 +13,17 @@ function Pagination({
   }
 
   return (
-    <nav className="pagination" aria-label={ariaLabel}>
-      <p>
+    <nav className="mt-4 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center" aria-label={ariaLabel}>
+      <p className="text-sm text-muted">
         Page <strong>{page}</strong> of <strong>{totalPages}</strong>
         <span>
           {" "}
           · {total} {itemLabel}
         </span>
       </p>
-      <div className="pagination__actions">
+      <div className="grid grid-cols-2 gap-2 sm:flex">
         <button
-          className="button button--quiet"
+          className={quietButton}
           type="button"
           disabled={page === 1}
           onClick={() => onPageChange(page - 1)}
@@ -29,7 +31,7 @@ function Pagination({
           Previous
         </button>
         <button
-          className="button button--quiet"
+          className={quietButton}
           type="button"
           disabled={page === totalPages}
           onClick={() => onPageChange(page + 1)}

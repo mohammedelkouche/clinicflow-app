@@ -11,6 +11,26 @@ import { listPatients } from "../api/patients.api.js";
 import AppointmentForm from "../components/AppointmentForm.jsx";
 import Pagination from "../components/Pagination.jsx";
 import StatusBadge from "../components/StatusBadge.jsx";
+import {
+  card,
+  emptyMark,
+  eyebrow,
+  formControl,
+  formField,
+  modalBackdrop,
+  modalCard,
+  modalClose,
+  modalHeader,
+  pageDescription,
+  pageHeader,
+  pageTitle,
+  primaryButton,
+  quietButton,
+  spinner,
+  table,
+  tableState,
+  tableWrap,
+} from "../styles/ui.js";
 
 const initialMeta = { page: 1, limit: 10, total: 0, totalPages: 0 };
 
@@ -208,17 +228,17 @@ function AppointmentsPage() {
   }
 
   return (
-    <section className="page-shell">
-      <header className="page-header appointment-page-header">
+    <section>
+      <header className={`${pageHeader} sm:items-center`}>
         <div>
-          <p className="eyebrow">Clinic schedule</p>
-          <h1>Appointments</h1>
-          <p>
+          <p className={eyebrow}>Clinic schedule</p>
+          <h1 className={pageTitle}>Appointments</h1>
+          <p className={pageDescription}>
             Schedule visits, filter the clinic calendar, and update statuses.
           </p>
         </div>
         <button
-          className="button button--primary"
+          className={`${primaryButton} w-full sm:w-auto`}
           type="button"
           onClick={openForm}
         >
@@ -226,20 +246,22 @@ function AppointmentsPage() {
         </button>
       </header>
 
-      <div className="appointment-filters" aria-label="Appointment filters">
-        <label className="filter-field">
+      <div className="mb-4 grid items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-[minmax(10rem,1fr)_minmax(10rem,1fr)_auto] lg:grid-cols-[minmax(10rem,13rem)_minmax(10rem,13rem)_auto_1fr]" aria-label="Appointment filters">
+        <label className={formField}>
           <span>Date</span>
           <input
             type="date"
             value={dateFilter}
             onInput={handleFilterChange(setDateFilter)}
+            className={formControl}
           />
         </label>
-        <label className="filter-field">
+        <label className={formField}>
           <span>Status</span>
           <select
             value={statusFilter}
             onChange={handleFilterChange(setStatusFilter)}
+            className={formControl}
           >
             <option value="">All statuses</option>
             <option value="pending">Pending</option>
@@ -248,28 +270,28 @@ function AppointmentsPage() {
           </select>
         </label>
         <button
-          className="button button--quiet filter-clear"
+          className={quietButton}
           type="button"
           onClick={clearFilters}
           disabled={!dateFilter && !statusFilter}
         >
           Clear filters
         </button>
-        <p>{meta.total} appointments</p>
+        <p className="self-center text-sm text-muted sm:col-span-3 lg:col-span-1 lg:justify-self-end">{meta.total} appointments</p>
       </div>
 
-      <div className="data-card" aria-busy={isLoading}>
+      <div className={card} aria-busy={isLoading}>
         {isLoading ? (
-          <div className="table-state" role="status">
-            <span className="spinner" aria-hidden="true" />
+          <div className={tableState} role="status">
+            <span className={spinner} aria-hidden="true" />
             <p>Loading appointments…</p>
           </div>
         ) : hasLoadError ? (
-          <div className="table-state">
-            <h2>Appointments unavailable</h2>
-            <p>Use the notification for details, then try again.</p>
+          <div className={tableState}>
+            <h2 className="text-lg font-bold text-ink">Appointments unavailable</h2>
+            <p className="mt-2">Use the notification for details, then try again.</p>
             <button
-              className="button button--quiet"
+              className={`${quietButton} mt-4`}
               type="button"
               onClick={refreshAppointments}
             >
@@ -277,16 +299,16 @@ function AppointmentsPage() {
             </button>
           </div>
         ) : appointments.length === 0 ? (
-          <div className="table-state">
-            <span className="empty-state__mark" aria-hidden="true">
+          <div className={tableState}>
+            <span className={emptyMark} aria-hidden="true">
               AP
             </span>
-            <h2>No appointments found</h2>
-            <p>Change the filters or schedule a new appointment.</p>
+            <h2 className="mt-4 text-lg font-bold text-ink">No appointments found</h2>
+            <p className="mt-2">Change the filters or schedule a new appointment.</p>
           </div>
         ) : (
-          <div className="table-scroll">
-            <table className="data-table appointment-table">
+          <div className={tableWrap}>
+            <table className={`${table} min-w-5xl`}>
               <thead>
                 <tr>
                   <th scope="col">Patient</th>
@@ -300,7 +322,7 @@ function AppointmentsPage() {
                 {appointments.map((appointment) => (
                   <tr key={appointment.id}>
                     <td data-label="Patient">
-                      <strong className="appointment-patient">
+                      <strong className="text-ink">
                         {appointment.patientName}
                       </strong>
                     </td>
@@ -308,10 +330,10 @@ function AppointmentsPage() {
                       {formatAppointmentDate(appointment.appointmentDate)}
                     </td>
                     <td data-label="Visit">
-                      <div className="visit-copy">
-                        <strong>{appointment.reason}</strong>
+                      <div className="grid max-w-xs gap-1">
+                        <strong className="text-ink">{appointment.reason}</strong>
                         {appointment.notes ? (
-                          <small>{appointment.notes}</small>
+                          <small className="line-clamp-2 text-xs leading-5 text-muted">{appointment.notes}</small>
                         ) : null}
                       </div>
                     </td>
@@ -320,7 +342,7 @@ function AppointmentsPage() {
                     </td>
                     <td data-label="Update status">
                       <select
-                        className="status-select"
+                        className={`${formControl} min-w-36 py-2`}
                         value={appointment.status}
                         onChange={(event) =>
                           handleStatusChange(appointment.id, event.target.value)
@@ -353,20 +375,20 @@ function AppointmentsPage() {
       ) : null}
 
       {isFormOpen ? (
-        <div className="modal-backdrop" role="presentation">
+        <div className={modalBackdrop} role="presentation">
           <section
-            className="modal-card appointment-modal"
+            className={`${modalCard} max-w-3xl`}
             role="dialog"
             aria-modal="true"
             aria-labelledby="appointment-form-title"
           >
-            <header className="modal-header">
+            <header className={modalHeader}>
               <div>
-                <p className="eyebrow">New visit</p>
-                <h2 id="appointment-form-title">Schedule an appointment</h2>
+                <p className={eyebrow}>New visit</p>
+                <h2 className="text-2xl font-extrabold text-ink" id="appointment-form-title">Schedule an appointment</h2>
               </div>
               <button
-                className="modal-close"
+                className={modalClose}
                 type="button"
                 aria-label="Close appointment form"
                 onClick={closeForm}

@@ -1,17 +1,18 @@
 import toast from "react-hot-toast";
+import { dangerButton, quietButton } from "../styles/ui.js";
 
 export function confirmToast({ title, message, confirmLabel = "Confirm" }) {
   return new Promise((resolve) => {
     toast.custom(
       (toastItem) => (
-        <div className="toast-confirm" role="alertdialog" aria-modal="true">
+        <div className="w-[min(90vw,28rem)] rounded-2xl border border-red-100 bg-white p-4 shadow-2xl" role="alertdialog" aria-modal="true">
           <div>
-            <strong>{title}</strong>
-            <p>{message}</p>
+            <strong className="mb-1 block text-ink">{title}</strong>
+            <p className="text-sm leading-6 text-muted">{message}</p>
           </div>
-          <div className="toast-confirm__actions">
+          <div className="mt-4 flex justify-end gap-2">
             <button
-              className="button button--quiet"
+              className={quietButton}
               type="button"
               onClick={() => {
                 toast.dismiss(toastItem.id);
@@ -21,7 +22,7 @@ export function confirmToast({ title, message, confirmLabel = "Confirm" }) {
               Cancel
             </button>
             <button
-              className="button button--danger"
+              className={dangerButton}
               type="button"
               onClick={() => {
                 toast.dismiss(toastItem.id);

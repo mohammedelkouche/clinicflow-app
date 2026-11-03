@@ -1,4 +1,12 @@
 import { useState } from "react";
+import {
+  formActions,
+  formControl,
+  formField,
+  formGrid,
+  primaryButton,
+  quietButton,
+} from "../styles/ui.js";
 
 const initialValues = {
   fullName: "",
@@ -21,9 +29,9 @@ function UserForm({ isSubmitting, onCancel, onSubmit }) {
   }
 
   return (
-    <form className="user-form" onSubmit={handleSubmit}>
-      <div className="form-grid">
-        <label className="form-field form-field--wide">
+    <form onSubmit={handleSubmit}>
+      <div className={formGrid}>
+        <label className={`${formField} sm:col-span-2`}>
           <span>Full name</span>
           <input
             name="fullName"
@@ -32,9 +40,10 @@ function UserForm({ isSubmitting, onCancel, onSubmit }) {
             maxLength={200}
             autoFocus
             required
+            className={formControl}
           />
         </label>
-        <label className="form-field form-field--wide">
+        <label className={`${formField} sm:col-span-2`}>
           <span>Email</span>
           <input
             name="email"
@@ -43,9 +52,10 @@ function UserForm({ isSubmitting, onCancel, onSubmit }) {
             onChange={handleChange}
             autoComplete="email"
             required
+            className={formControl}
           />
         </label>
-        <label className="form-field">
+        <label className={formField}>
           <span>Temporary password</span>
           <input
             name="password"
@@ -56,19 +66,20 @@ function UserForm({ isSubmitting, onCancel, onSubmit }) {
             maxLength={100}
             autoComplete="new-password"
             required
+            className={formControl}
           />
         </label>
-        <label className="form-field">
+        <label className={formField}>
           <span>Role</span>
-          <select name="role" value={values.role} onChange={handleChange}>
+          <select className={formControl} name="role" value={values.role} onChange={handleChange}>
             <option value="staff">Staff</option>
             <option value="admin">Admin</option>
           </select>
         </label>
       </div>
-      <div className="form-actions">
+      <div className={formActions}>
         <button
-          className="button button--quiet"
+          className={quietButton}
           type="button"
           onClick={onCancel}
           disabled={isSubmitting}
@@ -76,7 +87,7 @@ function UserForm({ isSubmitting, onCancel, onSubmit }) {
           Cancel
         </button>
         <button
-          className="button button--primary"
+          className={primaryButton}
           type="submit"
           disabled={isSubmitting}
         >

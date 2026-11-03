@@ -103,6 +103,14 @@ VITE_API_URL=http://localhost:4000/api
 `CORS_ORIGIN` in `backend/.env` must exactly match the frontend origin. Restart
 the backend after changing an environment variable.
 
+The frontend is styled with Tailwind CSS using its official Vite plugin. The
+integration is included in the frontend dependencies, so `npm install` and
+`npm run dev` require no separate Tailwind command.
+
+## Database design
+
+[Read the database design and ERD](./DATABASE_DESIGN.md)
+
 ## Seed accounts
 
 | Role  | Email                    | Password    |
@@ -189,9 +197,8 @@ the submitted timestamp against PostgreSQL `NOW()`. Past requests return HTTP
 - The API uses one central JSON error handler and never returns password hashes.
 - The frontend uses React context only for authentication and local state for
   page data; Redux would add unnecessary complexity.
-- Plain CSS is used deliberately because the interface already has a small,
-  consistent design system and responsive shared classes. Adding Tailwind after
-  completion would create two styling systems without improving functionality.
+- The frontend uses Tailwind CSS through the official Vite integration for a
+  consistent responsive interface without a separate component framework.
 - User management is admin-only and currently supports listing and creating
   accounts. Existing users are retained because appointments reference their
   creator for traceability.

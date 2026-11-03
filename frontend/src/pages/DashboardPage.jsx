@@ -4,6 +4,16 @@ import toast from "react-hot-toast";
 import { getDashboardStats } from "../api/dashboard.api.js";
 import StatCard from "../components/StatCard.jsx";
 import { useAuth } from "../hooks/useAuth.js";
+import {
+  card,
+  eyebrow,
+  pageDescription,
+  pageHeader,
+  pageTitle,
+  quietButton,
+  rolePill,
+  tableState,
+} from "../styles/ui.js";
 
 const statCards = [
   {
@@ -78,23 +88,23 @@ function DashboardPage() {
   }
 
   return (
-    <section className="page-shell">
-      <header className="page-header">
+    <section>
+      <header className={pageHeader}>
         <div>
-          <p className="eyebrow">Clinic overview</p>
-          <h1>Good to see you, {user.fullName.split(" ")[0]}.</h1>
-          <p>Here is the latest activity across your clinic.</p>
+          <p className={eyebrow}>Clinic overview</p>
+          <h1 className={pageTitle}>Good to see you, {user.fullName.split(" ")[0]}.</h1>
+          <p className={pageDescription}>Here is the latest activity across your clinic.</p>
         </div>
-        <span className="role-pill">{user.role}</span>
+        <span className={rolePill}>{user.role}</span>
       </header>
 
       {hasError ? (
-        <div className="data-card">
-          <div className="table-state">
-            <h2>Dashboard unavailable</h2>
-            <p>Use the notification for details, then try again.</p>
+        <div className={card}>
+          <div className={tableState}>
+            <h2 className="text-lg font-bold text-ink">Dashboard unavailable</h2>
+            <p className="mt-2">Use the notification for details, then try again.</p>
             <button
-              className="button button--quiet"
+              className={`${quietButton} mt-4`}
               type="button"
               onClick={retryLoading}
             >
@@ -103,7 +113,7 @@ function DashboardPage() {
           </div>
         </div>
       ) : (
-        <div className="stats-grid" aria-busy={!stats} aria-live="polite">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-busy={!stats} aria-live="polite">
           {statCards.map((card) => (
             <StatCard
               key={card.key}

@@ -1,4 +1,12 @@
 import { useState } from "react";
+import {
+  formActions,
+  formControl,
+  formField,
+  formGrid,
+  primaryButton,
+  quietButton,
+} from "../styles/ui.js";
 
 const currentDate = new Date();
 const maximumBirthDate = [
@@ -31,9 +39,9 @@ function PatientForm({ patient, isSubmitting, onCancel, onSubmit }) {
   }
 
   return (
-    <form className="patient-form" onSubmit={handleSubmit}>
-      <div className="form-grid">
-        <label className="form-field form-field--wide">
+    <form onSubmit={handleSubmit}>
+      <div className={formGrid}>
+        <label className={`${formField} sm:col-span-2`}>
           <span>Full name</span>
           <input
             name="fullName"
@@ -42,10 +50,11 @@ function PatientForm({ patient, isSubmitting, onCancel, onSubmit }) {
             maxLength={200}
             autoFocus
             required
+            className={formControl}
           />
         </label>
 
-        <label className="form-field">
+        <label className={formField}>
           <span>CIN</span>
           <input
             name="cin"
@@ -54,10 +63,11 @@ function PatientForm({ patient, isSubmitting, onCancel, onSubmit }) {
             maxLength={50}
             placeholder="AB123456"
             required
+            className={formControl}
           />
         </label>
 
-        <label className="form-field">
+        <label className={formField}>
           <span>Phone</span>
           <input
             name="phone"
@@ -67,10 +77,11 @@ function PatientForm({ patient, isSubmitting, onCancel, onSubmit }) {
             maxLength={50}
             placeholder="+212600000000"
             required
+            className={formControl}
           />
         </label>
 
-        <label className="form-field">
+        <label className={formField}>
           <span>Birth date</span>
           <input
             name="birthDate"
@@ -79,12 +90,13 @@ function PatientForm({ patient, isSubmitting, onCancel, onSubmit }) {
             onChange={handleChange}
             max={maximumBirthDate}
             required
+            className={formControl}
           />
         </label>
 
-        <label className="form-field form-field--wide">
+        <label className={`${formField} sm:col-span-2`}>
           <span>
-            Address <small>Optional</small>
+            Address <small className="ml-1 font-normal text-muted">Optional</small>
           </span>
           <textarea
             name="address"
@@ -92,13 +104,14 @@ function PatientForm({ patient, isSubmitting, onCancel, onSubmit }) {
             onChange={handleChange}
             maxLength={500}
             rows={3}
+            className={`${formControl} resize-y`}
           />
         </label>
       </div>
 
-      <div className="form-actions">
+      <div className={formActions}>
         <button
-          className="button button--quiet"
+          className={quietButton}
           type="button"
           onClick={onCancel}
           disabled={isSubmitting}
@@ -106,7 +119,7 @@ function PatientForm({ patient, isSubmitting, onCancel, onSubmit }) {
           Cancel
         </button>
         <button
-          className="button button--primary"
+          className={primaryButton}
           type="submit"
           disabled={isSubmitting}
         >

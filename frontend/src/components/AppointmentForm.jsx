@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import {
+  formActions,
+  formControl,
+  formField,
+  formGrid,
+  primaryButton,
+  quietButton,
+} from "../styles/ui.js";
 
 const initialValues = {
   patientId: "",
@@ -89,9 +97,9 @@ function AppointmentForm({
   }
 
   return (
-    <form className="appointment-form" onSubmit={handleSubmit}>
-      <div className="form-grid">
-        <label className="form-field form-field--wide">
+    <form onSubmit={handleSubmit}>
+      <div className={formGrid}>
+        <label className={`${formField} sm:col-span-2`}>
           <span>Find patient</span>
           <input
             type="search"
@@ -99,10 +107,11 @@ function AppointmentForm({
             onChange={(event) => setPatientSearch(event.target.value)}
             placeholder="Search by name or CIN"
             autoFocus
+            className={formControl}
           />
         </label>
 
-        <label className="form-field form-field--wide">
+        <label className={`${formField} sm:col-span-2`}>
           <span>Patient</span>
           <select
             name="patientId"
@@ -114,6 +123,7 @@ function AppointmentForm({
               !patients.length
             }
             required
+            className={formControl}
           >
             <option value="">
               {arePatientsLoading
@@ -132,11 +142,11 @@ function AppointmentForm({
           !patientOptionsError &&
           patients.length > 0 &&
           filteredPatients.length === 0 ? (
-            <small>No patients match this search.</small>
+            <small className="font-normal text-muted">No patients match this search.</small>
           ) : null}
         </label>
 
-        <label className="form-field">
+        <label className={formField}>
           <span>Date and time</span>
           <input
             name="appointmentDate"
@@ -146,20 +156,21 @@ function AppointmentForm({
             min={minimumAppointmentDateTime}
             step="60"
             required
+            className={formControl}
           />
-          <small>Past dates and elapsed times today are unavailable.</small>
+          <small className="font-normal leading-5 text-muted">Past dates and elapsed times today are unavailable.</small>
         </label>
 
-        <label className="form-field">
+        <label className={formField}>
           <span>Initial status</span>
-          <select name="status" value={values.status} onChange={handleChange}>
+          <select className={formControl} name="status" value={values.status} onChange={handleChange}>
             <option value="pending">Pending</option>
             <option value="confirmed">Confirmed</option>
             <option value="cancelled">Cancelled</option>
           </select>
         </label>
 
-        <label className="form-field form-field--wide">
+        <label className={`${formField} sm:col-span-2`}>
           <span>Reason</span>
           <input
             name="reason"
@@ -168,12 +179,13 @@ function AppointmentForm({
             maxLength={500}
             placeholder="Reason for the visit"
             required
+            className={formControl}
           />
         </label>
 
-        <label className="form-field form-field--wide">
+        <label className={`${formField} sm:col-span-2`}>
           <span>
-            Notes <small>Optional</small>
+            Notes <small className="ml-1 font-normal text-muted">Optional</small>
           </span>
           <textarea
             name="notes"
@@ -182,14 +194,15 @@ function AppointmentForm({
             maxLength={2000}
             rows={3}
             placeholder="Preparation notes or additional context"
+            className={`${formControl} resize-y`}
           />
         </label>
       </div>
 
       {patientOptionsError ? (
-        <div className="form-retry">
+        <div className="mt-4">
           <button
-            className="button button--quiet"
+            className={quietButton}
             type="button"
             onClick={onRetryPatients}
           >
@@ -198,9 +211,9 @@ function AppointmentForm({
         </div>
       ) : null}
 
-      <div className="form-actions">
+      <div className={formActions}>
         <button
-          className="button button--quiet"
+          className={quietButton}
           type="button"
           onClick={onCancel}
           disabled={isSubmitting}
@@ -208,7 +221,7 @@ function AppointmentForm({
           Cancel
         </button>
         <button
-          className="button button--primary"
+          className={primaryButton}
           type="submit"
           disabled={
             isSubmitting ||
