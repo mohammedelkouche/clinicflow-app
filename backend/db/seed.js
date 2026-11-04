@@ -25,6 +25,8 @@ const patients = [
   ["Lina Amrani", "IJ567890", "+212600000005", "2001-06-30", "Bouskoura"],
 ];
 
+// Confirmed appointments for the same patient are at least 30 minutes apart.
+// Different patients may be scheduled within the same 30-minute window.
 const appointments = [
   [
     "AB123456",

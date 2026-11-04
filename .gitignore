@@ -7,6 +7,7 @@ coverage/
 docs/
 AGENTS.md
 CLINICFLOW_TECHNICAL_AUDIT.md
+backend/db/migrations/002_global_appointment_buffer.sql
 *.log
 .DS_Store
 Thumbs.db

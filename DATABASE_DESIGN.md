@@ -1,10 +1,9 @@
 # ClinicFlow database design
 
 ClinicFlow uses PostgreSQL to store application users, patient records, and
-appointments. The migration files in `backend/db/migrations/` are the source of
-truth for the schema. The design keeps the relationships small and explicit for
-a junior PERN technical test while preserving data integrity at the database
-level.
+appointments. `backend/db/migrations/001_init.sql` is the source of truth for
+the schema. The design keeps the relationships small and explicit for a junior
+PERN technical test while preserving data integrity at the database level.
 
 ## Entity relationship diagram
 
@@ -94,15 +93,13 @@ erDiagram
 
 ## Confirmed-appointment protection
 
-The clinic cannot have two confirmed appointments whose start times are less
-than 30 minutes apart, even when the appointments belong to different patients.
-For example, **10:00 and 10:20 conflict**, while **10:00 and 10:30 are
-allowed**. Pending and cancelled appointments do not reserve a time.
+One patient cannot have two confirmed appointments whose start times are less
+than 30 minutes apart. For the same patient, **10:00 and 10:20 conflict**, while
+**10:00 and 10:30 are allowed**. A different patient may have a confirmed
+appointment at 10:20. Pending and cancelled appointments do not reserve a time.
 
 The application service checks this rule inside a database transaction and
-acquires a clinic-wide PostgreSQL advisory lock. This serializes competing
-confirmation requests so two parallel requests cannot both pass the check.
-Migration `002_global_appointment_buffer.sql` adds a PostgreSQL trigger that
-uses the same advisory lock and rejects conflicting inserts or status/date
-updates. The trigger is the database-level safety net for writes that reach
-PostgreSQL outside the normal service path.
+acquires a PostgreSQL advisory lock before checking the patient ID and time
+window. This serializes competing confirmation requests. The patient-scoped
+exclusion constraint in `001_init.sql` is the database-level safety net for
+inserts or updates that reach PostgreSQL outside the normal service path.

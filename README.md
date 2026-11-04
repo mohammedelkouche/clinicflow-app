@@ -172,15 +172,15 @@ also sends `Content-Type: application/json`.
 
 ## Confirmed-appointment rule
 
-The clinic cannot have two **confirmed** appointments whose start times are less
-than 30 minutes apart, even when they belong to different patients. For example,
-10:00 and 10:20 conflict, while 10:00 and 10:30 are allowed. Pending and
-cancelled appointments do not block a time.
+One patient cannot have two **confirmed** appointments whose start times are
+less than 30 minutes apart. For the same patient, 10:00 and 10:20 conflict,
+while 10:00 and 10:30 are allowed. A different patient may have a confirmed
+appointment at 10:20. Pending and cancelled appointments do not block a time.
 
-The service checks the rule inside a database transaction with a clinic-wide
-advisory lock. PostgreSQL also enforces it with a global trigger using the same
-transaction lock, so two parallel requests cannot bypass the rule. A conflict
-returns HTTP `409` with the code `APPOINTMENT_CONFLICT`.
+The service checks the patient ID and time window inside a database transaction
+with an advisory lock. PostgreSQL also enforces the rule with a patient-scoped
+exclusion constraint, so parallel writes cannot bypass it. A conflict returns
+HTTP `409` with the code `APPOINTMENT_CONFLICT`.
 
 Appointments must also be scheduled in the future. The browser disables past
 dates and elapsed times on the current day, while the API independently checks
@@ -203,6 +203,8 @@ the submitted timestamp against PostgreSQL `NOW()`. Past requests return HTTP
   accounts. Existing users are retained because appointments reference their
   creator for traceability.
 - Patient deletion is admin-only and cascades to that patient's appointments.
+- Paginated patient and appointment management lists show newly created records
+  first so staff can immediately verify successful data entry.
 - Calendar dates are mapped carefully so they do not move by one day because of
   browser or database timezone conversion.
 
@@ -214,6 +216,7 @@ Run these before committing:
 cd backend
 npm run lint
 npm run format:check
+npm test
 
 cd ../frontend
 npm run lint

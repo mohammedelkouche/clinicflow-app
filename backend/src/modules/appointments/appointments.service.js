@@ -25,7 +25,7 @@ function appointmentConflictError() {
   return new AppError(
     409,
     "APPOINTMENT_CONFLICT",
-    "The clinic already has a confirmed appointment within 30 minutes of this time",
+    "This patient already has a confirmed appointment within 30 minutes of this time",
   );
 }
 
@@ -71,6 +71,7 @@ async function ensureAppointmentIsInFuture(client, appointmentDate) {
 async function ensureNoConfirmedConflict(
   client,
   appointmentId,
+  patientId,
   appointmentDate,
 ) {
   const result = await client.query(
@@ -79,11 +80,12 @@ async function ensureNoConfirmedConflict(
       FROM appointments
       WHERE status = 'confirmed'
         AND id <> $1
-        AND appointment_date > $2::timestamptz - INTERVAL '30 minutes'
-        AND appointment_date < $2::timestamptz + INTERVAL '30 minutes'
+        AND patient_id = $2
+        AND appointment_date > $3::timestamptz - INTERVAL '30 minutes'
+        AND appointment_date < $3::timestamptz + INTERVAL '30 minutes'
       LIMIT 1
     `,
-    [appointmentId, appointmentDate],
+    [appointmentId, patientId, appointmentDate],
   );
 
   if (result.rowCount > 0) {
@@ -109,7 +111,12 @@ export async function createAppointment(
 
     if (status === "confirmed") {
       await lockClinicSchedule(client);
-      await ensureNoConfirmedConflict(client, nilUuid, appointmentDate);
+      await ensureNoConfirmedConflict(
+        client,
+        nilUuid,
+        patientId,
+        appointmentDate,
+      );
     }
 
     const insertResult = await client.query(
@@ -177,7 +184,7 @@ export async function listAppointments({
         JOIN patients p ON p.id = a.patient_id
         CROSS JOIN filters f
         ${whereClause}
-        ORDER BY a.appointment_date ASC
+        ORDER BY a.created_at DESC, a.id DESC
         LIMIT $5 OFFSET $6
       `,
       [...filterValues, limit, offset],
@@ -230,6 +237,7 @@ export async function updateAppointmentStatus(appointmentId, status) {
       await ensureNoConfirmedConflict(
         client,
         appointment.id,
+        appointment.patient_id,
         appointment.appointment_date,
       );
     }

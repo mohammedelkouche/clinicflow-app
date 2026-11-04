@@ -9,9 +9,10 @@
     "start": "node src/server.js",
     "db:migrate": "node db/migrate.js",
     "db:seed": "node db/seed.js",
-    "lint": "eslint src db eslint.config.js",
-    "format": "prettier --write src db eslint.config.js package.json",
-    "format:check": "prettier --check src db eslint.config.js package.json"
+    "test": "node --test tests/appointments.conflicts.test.js",
+    "lint": "eslint src db tests eslint.config.js",
+    "format": "prettier --write src db tests eslint.config.js package.json",
+    "format:check": "prettier --check src db tests eslint.config.js package.json"
   },
   "keywords": [],
   "author": "",
