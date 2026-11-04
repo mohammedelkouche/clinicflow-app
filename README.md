@@ -111,6 +111,33 @@ integration is included in the frontend dependencies, so `npm install` and
 
 [Read the database design and ERD](./DATABASE_DESIGN.md)
 
+## Docker Compose
+
+Docker Desktop can run PostgreSQL, the API, and the frontend together from the
+repository root:
+
+```bash
+docker compose up --build
+```
+
+Open `http://localhost:5174` after the services become healthy. The backend is
+available at `http://localhost:4001/api`, and Docker PostgreSQL is exposed on
+port `5433` to avoid conflicting with a local PostgreSQL installation.
+
+Docker intentionally uses different host ports from the normal local
+development servers: frontend `5174` instead of `5173`, and backend `4001`
+instead of `4000`. The backend still listens on port `4000` inside its
+container.
+
+The backend automatically applies database migrations and inserts the sample
+data only when the database is empty. The `postgres_data` Docker volume keeps
+records between container restarts. Stop the containers without deleting the
+database by running:
+
+```bash
+docker compose down
+```
+
 ## Seed accounts
 
 | Role  | Email                    | Password    |
@@ -231,16 +258,3 @@ Expand
 **Servers → PostgreSQL → Databases → clinicflow → Schemas → public → Tables**.
 Right-click a table and choose **View/Edit Data → All Rows**. Use
 **Tools → Query Tool** for SQL queries.
-
-## Common local issue: port 4000 is already in use
-
-If the health endpoint already returns `{ "status": "ok" }`, a backend process
-is already running and a second `npm run dev` will fail with `EADDRINUSE`. In Git
-Bash, identify the Windows process with:
-
-```bash
-netstat -ano | grep ':4000'
-```
-
-Stop the old terminal with `Ctrl+C`, or end the listed PID in Windows Task
-Manager, then start the backend once.

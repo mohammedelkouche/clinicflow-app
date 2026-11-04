@@ -1,6 +1,7 @@
 import "dotenv/config";
 
 import bcrypt from "bcrypt";
+import { pathToFileURL } from "node:url";
 
 import { pool, withTransaction } from "../src/db/pool.js";
 
@@ -120,7 +121,7 @@ const appointments = [
   ],
 ];
 
-async function seed() {
+export async function seed() {
   const adminPasswordHash = await bcrypt.hash("Admin123!", bcryptRounds);
   const staffPasswordHash = await bcrypt.hash("Staff123!", bcryptRounds);
 
@@ -225,14 +226,16 @@ async function seed() {
   });
 }
 
-try {
-  const counts = await seed();
-  console.info(
-    `Seed complete: ${counts.users} users, ${counts.patients} patients, ${counts.appointments} appointments.`,
-  );
-} catch (error) {
-  console.error("Seed failed:", error.message);
-  process.exitCode = 1;
-} finally {
-  await pool.end();
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  try {
+    const counts = await seed();
+    console.info(
+      `Seed complete: ${counts.users} users, ${counts.patients} patients, ${counts.appointments} appointments.`,
+    );
+  } catch (error) {
+    console.error("Seed failed:", error.message);
+    process.exitCode = 1;
+  } finally {
+    await pool.end();
+  }
 }
