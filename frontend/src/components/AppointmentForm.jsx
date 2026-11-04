@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {
   formActions,
@@ -36,6 +36,7 @@ function AppointmentForm({
   patientOptionsError,
   isSubmitting,
   onCancel,
+  onPatientSearchChange,
   onRetryPatients,
   onSubmit,
 }) {
@@ -44,6 +45,7 @@ function AppointmentForm({
     patientId: initialPatientId ?? "",
   }));
   const [patientSearch, setPatientSearch] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState(null);
   const [minimumAppointmentDateTime, setMinimumAppointmentDateTime] = useState(
     getMinimumAppointmentDateTime,
   );
@@ -56,23 +58,36 @@ function AppointmentForm({
     return () => window.clearInterval(intervalId);
   }, []);
 
-  const filteredPatients = useMemo(() => {
-    const normalizedSearch = patientSearch.trim().toLowerCase();
-
-    if (!normalizedSearch) {
-      return patients;
-    }
-
-    return patients.filter(
-      (patient) =>
-        patient.fullName.toLowerCase().includes(normalizedSearch) ||
-        patient.cin.toLowerCase().startsWith(normalizedSearch),
-    );
-  }, [patientSearch, patients]);
+  const patientOptions =
+    selectedPatient &&
+    !patients.some((patient) => patient.id === selectedPatient.id)
+      ? [selectedPatient, ...patients]
+      : patients;
 
   function handleChange(event) {
     const { name, value } = event.target;
     setValues((currentValues) => ({ ...currentValues, [name]: value }));
+  }
+
+  function handlePatientChange(event) {
+    handleChange(event);
+    setSelectedPatient(
+      patientOptions.find((patient) => patient.id === event.target.value) ??
+        null,
+    );
+  }
+
+  function handlePatientSearch(event) {
+    const nextSearch = event.target.value;
+
+    if (values.patientId && !selectedPatient) {
+      setSelectedPatient(
+        patients.find((patient) => patient.id === values.patientId) ?? null,
+      );
+    }
+
+    setPatientSearch(nextSearch);
+    onPatientSearchChange(nextSearch);
   }
 
   function handleSubmit(event) {
@@ -104,7 +119,7 @@ function AppointmentForm({
           <input
             type="search"
             value={patientSearch}
-            onChange={(event) => setPatientSearch(event.target.value)}
+            onChange={handlePatientSearch}
             placeholder="Search by name or CIN"
             autoFocus
             className={formControl}
@@ -116,11 +131,11 @@ function AppointmentForm({
           <select
             name="patientId"
             value={values.patientId}
-            onChange={handleChange}
+            onChange={handlePatientChange}
             disabled={
               arePatientsLoading ||
               Boolean(patientOptionsError) ||
-              !patients.length
+              !patientOptions.length
             }
             required
             className={formControl}
@@ -128,11 +143,11 @@ function AppointmentForm({
             <option value="">
               {arePatientsLoading
                 ? "Loading patients…"
-                : patients.length
+                : patientOptions.length
                   ? "Select a patient"
                   : "No patients available"}
             </option>
-            {filteredPatients.map((patient) => (
+            {patientOptions.map((patient) => (
               <option key={patient.id} value={patient.id}>
                 {patient.fullName} · {patient.cin}
               </option>
@@ -140,9 +155,11 @@ function AppointmentForm({
           </select>
           {!arePatientsLoading &&
           !patientOptionsError &&
-          patients.length > 0 &&
-          filteredPatients.length === 0 ? (
-            <small className="font-normal text-muted">No patients match this search.</small>
+          patientSearch.trim() &&
+          patients.length === 0 ? (
+            <small className="font-normal text-muted">
+              No patients match this search.
+            </small>
           ) : null}
         </label>
 
@@ -158,12 +175,19 @@ function AppointmentForm({
             required
             className={formControl}
           />
-          <small className="font-normal leading-5 text-muted">Past dates and elapsed times today are unavailable.</small>
+          <small className="font-normal leading-5 text-muted">
+            Past dates and elapsed times today are unavailable.
+          </small>
         </label>
 
         <label className={formField}>
           <span>Initial status</span>
-          <select className={formControl} name="status" value={values.status} onChange={handleChange}>
+          <select
+            className={formControl}
+            name="status"
+            value={values.status}
+            onChange={handleChange}
+          >
             <option value="pending">Pending</option>
             <option value="confirmed">Confirmed</option>
             <option value="cancelled">Cancelled</option>
@@ -185,7 +209,8 @@ function AppointmentForm({
 
         <label className={`${formField} sm:col-span-2`}>
           <span>
-            Notes <small className="ml-1 font-normal text-muted">Optional</small>
+            Notes{" "}
+            <small className="ml-1 font-normal text-muted">Optional</small>
           </span>
           <textarea
             name="notes"
@@ -227,7 +252,7 @@ function AppointmentForm({
             isSubmitting ||
             arePatientsLoading ||
             Boolean(patientOptionsError) ||
-            !patients.length
+            !patientOptions.length
           }
         >
           {isSubmitting ? "Scheduling…" : "Schedule appointment"}

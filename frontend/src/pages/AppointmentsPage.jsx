@@ -7,10 +7,11 @@ import {
   listAppointments,
   updateAppointmentStatus,
 } from "../api/appointments.api.js";
-import { listPatients } from "../api/patients.api.js";
+import { getPatient, listPatients } from "../api/patients.api.js";
 import AppointmentForm from "../components/AppointmentForm.jsx";
 import Pagination from "../components/Pagination.jsx";
 import StatusBadge from "../components/StatusBadge.jsx";
+import { useDebounce } from "../hooks/useDebounce.js";
 import {
   card,
   emptyMark,
@@ -53,6 +54,7 @@ function AppointmentsPage() {
   const [arePatientsLoading, setArePatientsLoading] = useState(true);
   const [patientOptionsError, setPatientOptionsError] = useState("");
   const [patientOptionsRequestKey, setPatientOptionsRequestKey] = useState(0);
+  const [patientSearch, setPatientSearch] = useState("");
   const [meta, setMeta] = useState(initialMeta);
   const [dateFilter, setDateFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -63,15 +65,35 @@ function AppointmentsPage() {
   const [isFormOpen, setIsFormOpen] = useState(Boolean(initialPatientId));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
+  const debouncedPatientSearch = useDebounce(patientSearch, 400);
 
   useEffect(() => {
+    if (!isFormOpen) return undefined;
+
     let isActive = true;
 
     async function loadPatientOptions() {
+      setArePatientsLoading(true);
+
       try {
-        const result = await listPatients({ search: "", page: 1, limit: 100 });
+        const [result, initialPatient] = await Promise.all([
+          listPatients({
+            search: debouncedPatientSearch,
+            page: 1,
+            limit: 20,
+          }),
+          initialPatientId && !debouncedPatientSearch
+            ? getPatient(initialPatientId)
+            : Promise.resolve(null),
+        ]);
+
         if (isActive) {
-          setPatients(result.data);
+          setPatients(
+            initialPatient &&
+              !result.data.some((patient) => patient.id === initialPatient.id)
+              ? [initialPatient, ...result.data]
+              : result.data,
+          );
           setPatientOptionsError("");
         }
       } catch (requestError) {
@@ -96,7 +118,12 @@ function AppointmentsPage() {
     return () => {
       isActive = false;
     };
-  }, [patientOptionsRequestKey]);
+  }, [
+    debouncedPatientSearch,
+    initialPatientId,
+    isFormOpen,
+    patientOptionsRequestKey,
+  ]);
 
   useEffect(() => {
     let isActive = true;
@@ -161,6 +188,7 @@ function AppointmentsPage() {
   }
 
   function openForm() {
+    setPatientSearch("");
     setIsFormOpen(true);
   }
 
@@ -246,7 +274,10 @@ function AppointmentsPage() {
         </button>
       </header>
 
-      <div className="mb-4 grid items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-[minmax(10rem,1fr)_minmax(10rem,1fr)_auto] lg:grid-cols-[minmax(10rem,13rem)_minmax(10rem,13rem)_auto_1fr]" aria-label="Appointment filters">
+      <div
+        className="mb-4 grid items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-[minmax(10rem,1fr)_minmax(10rem,1fr)_auto] lg:grid-cols-[minmax(10rem,13rem)_minmax(10rem,13rem)_auto_1fr]"
+        aria-label="Appointment filters"
+      >
         <label className={formField}>
           <span>Date</span>
           <input
@@ -277,7 +308,9 @@ function AppointmentsPage() {
         >
           Clear filters
         </button>
-        <p className="self-center text-sm text-muted sm:col-span-3 lg:col-span-1 lg:justify-self-end">{meta.total} appointments</p>
+        <p className="self-center text-sm text-muted sm:col-span-3 lg:col-span-1 lg:justify-self-end">
+          {meta.total} appointments
+        </p>
       </div>
 
       <div className={card} aria-busy={isLoading}>
@@ -288,8 +321,12 @@ function AppointmentsPage() {
           </div>
         ) : hasLoadError ? (
           <div className={tableState}>
-            <h2 className="text-lg font-bold text-ink">Appointments unavailable</h2>
-            <p className="mt-2">Use the notification for details, then try again.</p>
+            <h2 className="text-lg font-bold text-ink">
+              Appointments unavailable
+            </h2>
+            <p className="mt-2">
+              Use the notification for details, then try again.
+            </p>
             <button
               className={`${quietButton} mt-4`}
               type="button"
@@ -303,8 +340,12 @@ function AppointmentsPage() {
             <span className={emptyMark} aria-hidden="true">
               AP
             </span>
-            <h2 className="mt-4 text-lg font-bold text-ink">No appointments found</h2>
-            <p className="mt-2">Change the filters or schedule a new appointment.</p>
+            <h2 className="mt-4 text-lg font-bold text-ink">
+              No appointments found
+            </h2>
+            <p className="mt-2">
+              Change the filters or schedule a new appointment.
+            </p>
           </div>
         ) : (
           <div className={tableWrap}>
@@ -331,9 +372,13 @@ function AppointmentsPage() {
                     </td>
                     <td data-label="Visit">
                       <div className="grid max-w-xs gap-1">
-                        <strong className="text-ink">{appointment.reason}</strong>
+                        <strong className="text-ink">
+                          {appointment.reason}
+                        </strong>
                         {appointment.notes ? (
-                          <small className="line-clamp-2 text-xs leading-5 text-muted">{appointment.notes}</small>
+                          <small className="line-clamp-2 text-xs leading-5 text-muted">
+                            {appointment.notes}
+                          </small>
                         ) : null}
                       </div>
                     </td>
@@ -385,7 +430,12 @@ function AppointmentsPage() {
             <header className={modalHeader}>
               <div>
                 <p className={eyebrow}>New visit</p>
-                <h2 className="text-2xl font-extrabold text-ink" id="appointment-form-title">Schedule an appointment</h2>
+                <h2
+                  className="text-2xl font-extrabold text-ink"
+                  id="appointment-form-title"
+                >
+                  Schedule an appointment
+                </h2>
               </div>
               <button
                 className={modalClose}
@@ -404,6 +454,7 @@ function AppointmentsPage() {
               patientOptionsError={patientOptionsError}
               isSubmitting={isSubmitting}
               onCancel={closeForm}
+              onPatientSearchChange={setPatientSearch}
               onRetryPatients={retryPatientOptions}
               onSubmit={handleCreate}
             />

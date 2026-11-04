@@ -24,7 +24,7 @@ function mapPostgresError(error) {
       return new AppError(
         409,
         "APPOINTMENT_CONFLICT",
-        "The clinic already has a confirmed appointment within 30 minutes of this time",
+        "This patient already has a confirmed appointment within 30 minutes of this time",
       );
     case "22P02":
       return new AppError(400, "VALIDATION_ERROR", "Invalid input");
@@ -39,7 +39,7 @@ function mapPostgresError(error) {
   }
 }
 
-export function errorHandler(error, _request, response, _next) {
+export function errorHandler(error, request, response, _next) {
   const mappedError = mapPostgresError(error);
   const handledError =
     error instanceof AppError
@@ -48,7 +48,12 @@ export function errorHandler(error, _request, response, _next) {
         new AppError(500, "INTERNAL_ERROR", "An unexpected error occurred"));
 
   if (handledError.status === 500) {
-    console.error("Unexpected server error");
+    console.error("Unexpected server error", {
+      method: request.method,
+      path: request.originalUrl,
+      message: error.message,
+      stack: error.stack,
+    });
   }
 
   response.status(handledError.status).json({
