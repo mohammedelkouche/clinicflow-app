@@ -237,6 +237,33 @@ the submitted timestamp against PostgreSQL `NOW()`. Past requests return HTTP
 
 ## Quality checks
 
+### Backend integration-test database
+
+Jest and Supertest use a separate PostgreSQL database. Never point the tests at
+the normal `clinicflow` database because the suite resets its schema.
+
+When using the Docker PostgreSQL service, create the test database once:
+
+```bash
+docker compose exec postgres createdb -U clinicflow clinicflow_test
+cd backend
+cp .env.test.example .env.test
+```
+
+Then set this value in `backend/.env.test`:
+
+```dotenv
+TEST_DATABASE_URL=postgres://clinicflow:clinicflow@localhost:5433/clinicflow_test
+```
+
+For a locally installed PostgreSQL server, create `clinicflow_test` in pgAdmin
+or with `createdb`, then update `TEST_DATABASE_URL` with its username, password,
+and port. The test runner refuses to reset a database unless its name ends with
+`_test`.
+
+Supertest calls the Express application directly, so the backend does not need
+to be running while the tests execute.
+
 Run these before committing:
 
 ```bash

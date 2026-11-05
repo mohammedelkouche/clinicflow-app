@@ -2,12 +2,15 @@ node_modules/
 .env
 .env.*
 !.env.example
+!.env.test.example
 dist/
 coverage/
 docs/
 AGENTS.md
 CLINICFLOW_TECHNICAL_AUDIT.md
 DOCKER_LOCAL_GUIDE.md
+JEST_SUPERTEST_GUIDE.md
+JEST_SUPERTEST_COVERAGE.md
 backend/db/migrations/002_global_appointment_buffer.sql
 *.log
 .DS_Store
