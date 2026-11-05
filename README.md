@@ -107,9 +107,14 @@ The frontend is styled with Tailwind CSS using its official Vite plugin. The
 integration is included in the frontend dependencies, so `npm install` and
 `npm run dev` require no separate Tailwind command.
 
-## Database design
+## Architecture
 
-[Read the database design and ERD](./DATABASE_DESIGN.md)
+ClinicFlow is a modular PERN application. The backend follows a strict
+`routes → controllers → services → database` structure, while the React
+frontend uses feature-specific API modules and shared UI components.
+
+- [Application architecture](./ARCHITECTURE.md)
+- [Database design and ERD](./DATABASE_DESIGN.md)
 
 ## Docker Compose
 
@@ -187,7 +192,12 @@ token, select **Authorize**, and enter the token. Swagger UI adds the required
 
 ## Testing authentication in Postman
 
-1. Send `POST http://localhost:4000/api/auth/login`.
+Use the URL that matches how ClinicFlow is running:
+
+- Docker Compose: `http://localhost:4001/api/auth/login`
+- Local backend with `npm run dev`: `http://localhost:4000/api/auth/login`
+
+1. Send a `POST` request to the appropriate login URL above.
 2. In **Body**, select **raw → JSON** and use:
 
    ```json
@@ -289,10 +299,3 @@ npm run build
 ```
 
 To apply backend formatting, run `npm run format` from `backend`.
-
-## Viewing data in pgAdmin
-
-Expand
-**Servers → PostgreSQL → Databases → clinicflow → Schemas → public → Tables**.
-Right-click a table and choose **View/Edit Data → All Rows**. Use
-**Tools → Query Tool** for SQL queries.
