@@ -5,12 +5,14 @@ node_modules/
 !.env.test.example
 dist/
 coverage/
-docs/
+/docs/
 AGENTS.md
 CLINICFLOW_TECHNICAL_AUDIT.md
 DOCKER_LOCAL_GUIDE.md
 JEST_SUPERTEST_GUIDE.md
 JEST_SUPERTEST_COVERAGE.md
+SWAGGER_GUIDE.md
+SWAGGER_API_REFERENCE.md
 backend/db/migrations/002_global_appointment_buffer.sql
 *.log
 .DS_Store

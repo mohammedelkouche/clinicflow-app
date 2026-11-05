@@ -174,6 +174,17 @@ the header `Authorization: Bearer <token>`.
 Patient list query parameters are `search`, `page`, and `limit`. Appointment
 list query parameters are `date`, `status`, `patientId`, `page`, and `limit`.
 
+## Swagger API documentation
+
+With the backend running, open `http://localhost:4000/api/docs` to explore the
+API in Swagger UI. When using Docker Compose, open
+`http://localhost:4001/api/docs` instead. The OpenAPI JSON document is available
+at `/api/docs.json` on the same backend host.
+
+To try a protected endpoint, first run `POST /auth/login`, copy the returned
+token, select **Authorize**, and enter the token. Swagger UI adds the required
+`Authorization: Bearer <token>` header automatically.
+
 ## Testing authentication in Postman
 
 1. Send `POST http://localhost:4000/api/auth/login`.
