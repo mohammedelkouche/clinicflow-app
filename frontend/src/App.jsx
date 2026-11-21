@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
 import Layout from "./components/Layout.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -6,6 +6,7 @@ import RoleRoute from "./components/RoleRoute.jsx";
 import AppointmentsPage from "./pages/AppointmentsPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
+import NotFoundPage from "./pages/NotFoundPage.jsx";
 import PatientDetailsPage from "./pages/PatientDetailsPage.jsx";
 import PatientsPage from "./pages/PatientsPage.jsx";
 import UsersPage from "./pages/UsersPage.jsx";
@@ -23,9 +24,9 @@ function App() {
           <Route element={<RoleRoute roles={["admin"]} />}>
             <Route path="users" element={<UsersPage />} />
           </Route>
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
